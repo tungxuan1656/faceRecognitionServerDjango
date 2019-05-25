@@ -2,8 +2,6 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('', views.index),
+    path('a', views.index),
+    path('a/<str:s>', views.index2),
 ]
-
-# https://arcane-ridge-89073.herokuapp.com/ |
-# https://git.heroku.com/arcane-ridge-89073.git
