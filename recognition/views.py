@@ -12,10 +12,7 @@ import numpy as np
 
 def index(request):
     response = HttpResponse()
-    if (request.method == "GET"):
-        response.writelines("day la recognition")
-    else:
-        response.write(request.method)
+    response.writelines("day la recognition")
     return response
 
 
