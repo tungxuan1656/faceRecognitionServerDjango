@@ -1,6 +1,5 @@
 django
 gunicorn
 django-heroku
-pickle
 opencv-python
 numpy
