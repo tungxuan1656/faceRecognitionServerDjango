@@ -3,17 +3,10 @@ from django.http import HttpResponse
 from django.core.files import File
 from FaceRecognition import settings
 import os
-import pickle
 import cv2
 import numpy as np
-
-# Create your views here.
-
-
-def index(request):
-    response = HttpResponse()
-    response.writelines("day la recognition")
-    return response
+from sklearn.externals import joblib
+from sklearn.neighbors import KNeighborsClassifier as KNN
 
 
 def convertfileimage(l0):
@@ -32,11 +25,11 @@ def convertfileimage(l0):
     return file_path2
 
 
-def knn(train_folder):
+def knn():
+    train_folder = os.path.join(settings.BASE_DIR, 'recognition', 'image')
     digits = []
     labels = []
     dict_labels = {}
-    model = cv2.ml.KNearest_create()
 
     listfolder = os.listdir(train_folder)
     for i in range(len(listfolder)):
@@ -49,12 +42,13 @@ def knn(train_folder):
 
     x = np.array(digits)
     X_train = x[:].reshape(-1, 10000).astype(np.float32)
-
-    # X_train = np.float32(digits)
     y_train = np.asarray(labels)
 
-    # print(X_train)
-    model.train(X_train, cv2.ml.ROW_SAMPLE, y_train)
+    model = KNN(n_neighbors=1)
+    model.fit(X_train, y_train)
+
+    joblib.dump(model, 'knn.model')
+    joblib.dump(dict_labels, 'knn.dict_labels')
 
     return model, dict_labels
 
@@ -63,8 +57,8 @@ def predict(model, dict_labels, image_path):
     imagetest = cv2.imread(image_path, cv2.COLOR_BGR2GRAY)
     x = np.array(imagetest)
     test_img = x.reshape(-1, 10000).astype(np.float32)
-    retval, results, neigh_resp, dists = model.findNearest(test_img, 3)
-    return dict_labels[int(retval)]
+    pred = model.predict(test_img)
+    return dict_labels[int(pred)]
 
 
 def index2(request, s=None):
@@ -73,8 +67,14 @@ def index2(request, s=None):
     file_path = os.path.join(settings.BASE_DIR, 'recognition', l[0])
     if (l[1] == '-1'):
         image_path = convertfileimage(l[0])
-        model, dict_labels = knn(os.path.join(
-            settings.BASE_DIR, 'recognition', 'image'))
+
+        pathmodel = os.path.join(settings.BASE_DIR, 'recognition', 'knn.model')
+        if (os.path.isfile(pathmodel)):
+            model = joblib.load('knn.model')
+            dict_labels = joblib.load('knn.dict_labels')
+        else:
+            model, dict_labels = knn()
+
         result = predict(model, dict_labels, image_path)
         response.write(result)
         os.remove(file_path)
@@ -93,5 +93,7 @@ def index2(request, s=None):
         return response
 
 
-def classify():
-    return 'tung'
+def index(request):
+    response = HttpResponse()
+    response.writelines("day la recognition")
+    return response
