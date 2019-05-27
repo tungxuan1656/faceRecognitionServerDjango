@@ -7,18 +7,25 @@ import cv2
 import numpy as np
 from sklearn.externals import joblib
 from sklearn.neighbors import KNeighborsClassifier as KNN
+import shutil
 
 
-def convertfileimage(l0):
-    file_path = os.path.join(settings.BASE_DIR, 'recognition', l0)
-    with open(file_path, 'r') as f:
-        s = f.read()
-    f.close()
+def convertfileimage(n):
+    s = ''
+    for k in range(1000):
+        file_path = os.path.join(
+            settings.BASE_DIR, 'recognition', str(n), str(k))
+        if (os.path.exists(file_path) is False):
+            break
+        with open(file_path, 'r') as f:
+            s += f.read()
+        f.close()
+
     z = s.strip('_').split('_')
     l = []
     for a in z:
         l.append(int(a))
-    file_path2 = os.path.join(settings.BASE_DIR, 'recognition', l0 + '.JPG')
+    file_path2 = os.path.join(settings.BASE_DIR, 'recognition', n + '.jpg')
     with open(file_path2, 'wb') as f:
         f.write(bytes(l))
     f.close()
@@ -63,10 +70,13 @@ def predict(model, dict_labels, image_path):
 
 def index2(request, s=None):
     response = HttpResponse()
+    # l[0] la k
+    # l[1] la n
+    # l[2] la gia tri truy van
     l = s.split('=')
-    file_path = os.path.join(settings.BASE_DIR, 'recognition', l[0])
-    if (l[1] == '-1'):
-        image_path = convertfileimage(l[0])
+    file_path = os.path.join(settings.BASE_DIR, 'recognition', l[1])
+    if (l[2] == '-1'):
+        image_path = convertfileimage(l[1])
 
         pathmodel = os.path.join(settings.BASE_DIR, 'recognition', 'knn.model')
         if (os.path.isfile(pathmodel)):
@@ -77,20 +87,21 @@ def index2(request, s=None):
 
         result = predict(model, dict_labels, image_path)
         response.write(result)
-        os.remove(file_path)
+        shutil.rmtree('recognition/' + l[1])
         os.remove(image_path)
         return response
     else:
-        if (os.path.isfile(file_path)):
-            with open(file_path, 'a') as f:
-                a = f.write(l[1])
-            f.close()
-        else:
-            with open(file_path, 'w') as f:
-                a = f.write(l[1])
-            f.close()
-        response.write(a)
+        saveinfolder(l[0], l[1], l[2])
         return response
+
+
+def saveinfolder(k, n, l2):
+    if (not os.path.exists('recognition/' + n)):
+        os.mkdir('recognition/' + n)
+    file_path = os.path.join(settings.BASE_DIR, 'recognition', str(n), str(k))
+    with open(file_path, 'w') as f:
+        a = f.write(l2)
+    f.close()
 
 
 def index(request):
