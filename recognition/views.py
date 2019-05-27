@@ -75,7 +75,7 @@ def index2(request, s=None):
     # l[2] la gia tri truy van
     l = s.split('=')
     file_path = os.path.join(settings.BASE_DIR, 'recognition', l[1])
-    if (l[2] == '-1'):
+    if (l[3] != '' and len(os.listdir(train_folder)) == l[0] - 1):
         image_path = convertfileimage(l[1])
 
         pathmodel = os.path.join(settings.BASE_DIR, 'recognition', 'knn.model')
