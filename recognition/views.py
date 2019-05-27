@@ -75,8 +75,22 @@ def index2(request, s=None):
     # l[2] la gia tri truy van
     l = s.split('=')
     file_path = os.path.join(settings.BASE_DIR, 'recognition', l[1])
-    if (l[2] == '-1' and l[3] == str(len(os.listdir(file_path)))):
-        print(': ' + l[3] + '---' + str(len(os.listdir(file_path))))
+    file_len = os.path.join(settings.BASE_DIR, 'recognition', 'len')
+    if (l[2] == '-1'):
+        with open(file_len, 'w') as f:
+            f.write(l[3])
+        f.close()
+
+    with open(file_len, 'r') as f:
+        lena = f.read()
+    f.close()
+
+    path = os.path.join(settings.BASE_DIR, 'recognition', l[1])
+    if (not os.path.exists(path)):
+        os.mkdir(path)
+
+    if (lena == str(len(os.listdir(file_path)))):
+        print('len: ' + lena + '---' + str(len(os.listdir(file_path))))
         image_path = convertfileimage(l[1])
         pathmodel = os.path.join(settings.BASE_DIR, 'recognition', 'knn.model')
         if (os.path.isfile(pathmodel)):
@@ -87,8 +101,11 @@ def index2(request, s=None):
 
         result = predict(model, dict_labels, image_path)
         response.write(result)
-        shutil.rmtree('recognition/' + l[1])
+        shutil.rmtree(file_path)
         os.remove(image_path)
+        with open(file_len, 'w') as f:
+            pass
+        f.close()
         return response
     else:
         saveinfolder(l[0], l[1], l[2])
@@ -96,8 +113,6 @@ def index2(request, s=None):
 
 
 def saveinfolder(k, n, l2):
-    if (not os.path.exists('recognition/' + n)):
-        os.mkdir('recognition/' + n)
     file_path = os.path.join(settings.BASE_DIR, 'recognition', str(n), str(k))
     with open(file_path, 'w') as f:
         a = f.write(l2)
