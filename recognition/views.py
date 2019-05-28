@@ -92,7 +92,7 @@ def index2(request, s=None):
     if (lena == str(len(os.listdir(file_path)))):
         print('len: ' + lena + '---' + str(len(os.listdir(file_path))))
         image_path = convertfileimage(l[1])
-        pathmodel = os.path.join(settings.BASE_DIR, 'recognition', 'knn.model')
+        pathmodel = os.path.join(settings.BASE_DIR, 'knn.model')
         if (os.path.isfile(pathmodel)):
             model = joblib.load('knn.model')
             dict_labels = joblib.load('knn.dict_labels')
